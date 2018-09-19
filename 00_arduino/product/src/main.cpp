@@ -35,9 +35,9 @@ void loop() {
   Serial.println(now_state);
   if (PREV_STATE != now_state) {
     if (now_state == 1) {
-      postTweet(String("locked! at" + String(millis())));
+      postTweet(String("Locked! at" + String(millis())));
     } else {
-      postTweet(String("unlocked! at" + String(millis())));
+      postTweet(String("Unlocked. Check the key!! at" + String(millis())));
     }
     PREV_STATE = now_state;
   }
