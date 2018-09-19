@@ -8,8 +8,6 @@
 
 void postTweet(String tweet);
 
-const char SSID[] = WIFI_SSID; // "xxxx"
-const char PASSWORD[] = WIFI_PASSWORD; // "xxxx"
 const int PIN = 14;
 int PREV_STATE = 0;
 
@@ -17,8 +15,8 @@ void setup() {
   Serial.begin(115200);
   while(!Serial);
 
-  WiFi.begin(SSID, PASSWORD);
-  Serial.printf("Connecting to the WiFi AP: %s ", SSID);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  Serial.printf("Connecting to the WiFi AP: %s ", WIFI_SSID);
 
   while(WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
@@ -37,9 +35,9 @@ void loop() {
   Serial.println(now_state);
   if (PREV_STATE != now_state) {
     if (now_state == 1) {
-      postTweet(String("locked!"));
+      postTweet(String("locked! at" + String(millis())));
     } else {
-      postTweet(String("unlocked!"));
+      postTweet(String("unlocked! at" + String(millis())));
     }
     PREV_STATE = now_state;
   }
@@ -52,6 +50,8 @@ void postTweet(String tweet) {
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");
   String tsData = String("api_key=" + String(THING_TWEET_API_KEY) + "&status=" + tweet);
   int httpCode = http.POST(tsData);
+  Serial.printf("Response: %d", httpCode);
+  Serial.println();
   if (httpCode == HTTP_CODE_OK) {
     String body = http.getString();
     Serial.print("Response Body: ");
