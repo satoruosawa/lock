@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <WiFi.h>
+#include <string>
 #include <HTTPClient.h>
 
 #include "./wifi-info.h"
@@ -27,7 +28,11 @@ void setup() {
 
 void loop() {
   HTTPClient http;
-  http.begin(URL);
+  String url = URL;
+  String value = String(random(0, 10), DEC);
+  String request = String(url + "&field1=" + value);
+  Serial.println(request);
+  http.begin(request.c_str());
   String requestBody = "Hello World!";
   int httpCode = http.POST(requestBody);
 
