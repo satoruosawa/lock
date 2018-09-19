@@ -2,13 +2,14 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 
-#include "./wifi-info.h"
+#include "./config.h"
 
-void sendValue(int value);
+#define SERVER_URL "https://api.thingspeak.com/apps/thingtweet/1/statuses/update"
+
+void postTweet(String tweet);
 
 const char SSID[] = WIFI_SSID; // "xxxx"
 const char PASSWORD[] = WIFI_PASSWORD; // "xxxx"
-const char URL[] = SERVER_URL; // "http://xxx.xxx.xxx.xxx:8000/"
 const int PIN = 14;
 int PREV_STATE = 0;
 
@@ -35,24 +36,22 @@ void loop() {
   int now_state = digitalRead(PIN);
   Serial.println(now_state);
   if (PREV_STATE != now_state) {
-    sendValue(now_state);
+    if (now_state == 1) {
+      postTweet(String("locked!"));
+    } else {
+      postTweet(String("unlocked!"));
+    }
     PREV_STATE = now_state;
   }
   delay(1000);
 }
 
-void sendValue(int value) {
+void postTweet(String tweet) {
   HTTPClient http;
-  String url = URL;
-  String sValue = String(value, DEC);
-  String request = String(url + "&field1=" + sValue);
-  Serial.println(request);
-  http.begin(request.c_str());
-  String requestBody = "Hello World!";
-  int httpCode = http.POST(requestBody);
-
-  Serial.printf("Response: %d", httpCode);
-  Serial.println();
+  http.begin(SERVER_URL);
+  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+  String tsData = String("api_key=" + String(THING_TWEET_API_KEY) + "&status=" + tweet);
+  int httpCode = http.POST(tsData);
   if (httpCode == HTTP_CODE_OK) {
     String body = http.getString();
     Serial.print("Response Body: ");

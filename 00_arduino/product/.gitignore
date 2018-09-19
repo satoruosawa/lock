@@ -3,4 +3,4 @@
 .clang_complete
 .gcc-flags.json
 
-src/wifi-info.h
+src/config.h
