@@ -26,13 +26,18 @@ void setup() {
 }
 
 void loop() {
-  HTTPClient client;
-  client.begin(URL);
+  HTTPClient http;
+  http.begin(URL);
+  String requestBody = "Hello World!";
+  int httpCode = http.POST(requestBody);
 
-  Serial.printf("Response: %d\n", client.GET());
-  String body = client.getString();
-  Serial.print("Response Body: ");
-  Serial.println(body);
+  Serial.printf("Response: %d", httpCode);
+  Serial.println();
+  if (httpCode == HTTP_CODE_OK) {
+    String body = http.getString();
+    Serial.print("Response Body: ");
+    Serial.println(body);
+  }
 
-  delay(1000);
+  delay(5000);
 }

@@ -1,6 +1,11 @@
 # setup
 - mac local server
-  - $ `python -m SimpleHTTPServer`
+  - type following commands in the terminal
+  ```
+  $ cd server
+  $ python3 simple-httpd.py
+  ```
+
 - to check address
   - $ `ifconfig`
 - add wifi-info.h
