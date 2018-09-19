@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include <WiFi.h>
-// #include <string>
 #include <HTTPClient.h>
 
 #include "./wifi-info.h"
