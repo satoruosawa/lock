@@ -8,7 +8,7 @@
 
 void postTweet(String tweet);
 
-const int PIN = 14;
+const int PIN = 14; //D5
 int PREV_STATE = 0;
 
 void setup() {
@@ -34,7 +34,7 @@ void loop() {
   int now_state = digitalRead(PIN);
   Serial.println(now_state);
   if (PREV_STATE != now_state) {
-    if (now_state == 1) {
+    if (now_state == 0) {
       postTweet(String("Locked! at" + String(millis())));
     } else {
       postTweet(String("Unlocked. Check the key!! at" + String(millis())));
