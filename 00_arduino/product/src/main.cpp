@@ -1,6 +1,5 @@
 #include <Arduino.h>
 
-#include <esp_deep_sleep.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
 
