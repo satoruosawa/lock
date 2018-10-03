@@ -1,24 +1,29 @@
 #include <Arduino.h>
+
+#include <esp_deep_sleep.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
 
 #include "./config.h"
 
 #define SERVER_URL "https://api.thingspeak.com/apps/thingtweet/1/statuses/update"
+#define LOCKED 0
+#define UNLOCKED 1
 
 void postTweet(String tweet);
 
-const int PIN = 14; //D5
-int PREV_STATE = 0;
+const gpio_num_t PIN = GPIO_NUM_14;
 
 void setup() {
   Serial.begin(115200);
-  while(!Serial);
+  Serial.println("Start");
+
+  while (!Serial);
 
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.printf("Connecting to the WiFi AP: %s ", WIFI_SSID);
 
-  while(WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
     delay(500);
   }
@@ -28,20 +33,24 @@ void setup() {
   Serial.println(WiFi.localIP());
 
   pinMode(PIN, INPUT_PULLUP);
+  int now_state = digitalRead(PIN);
+
+  if (now_state == LOCKED) {
+    Serial.println("Locked.");
+    postTweet(String("Locked! at" + String(millis())));
+    esp_sleep_enable_ext0_wakeup(PIN, UNLOCKED);
+  } else {
+    Serial.println("Unlocked.");
+    postTweet(String("Unlocked. Check the key!! at" + String(millis())));
+    esp_sleep_enable_ext0_wakeup(PIN, LOCKED);
+  }
+
+  Serial.println("Going to sleep.");
+  delay(100);
+  esp_deep_sleep_start();
 }
 
 void loop() {
-  int now_state = digitalRead(PIN);
-  Serial.println(now_state);
-  if (PREV_STATE != now_state) {
-    if (now_state == 0) {
-      postTweet(String("Locked! at" + String(millis())));
-    } else {
-      postTweet(String("Unlocked. Check the key!! at" + String(millis())));
-    }
-    PREV_STATE = now_state;
-  }
-  delay(1000);
 }
 
 void postTweet(String tweet) {
