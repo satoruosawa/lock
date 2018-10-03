@@ -1,6 +1,5 @@
 #include <Arduino.h>
 
-#include <esp_deep_sleep.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
 
@@ -12,9 +11,11 @@
 
 void postTweet(String tweet);
 
+RTC_DATA_ATTR int bootCount = 0;
 const gpio_num_t PIN = GPIO_NUM_14;
 
 void setup() {
+  bootCount++;
   Serial.begin(115200);
   Serial.println("Start");
 
@@ -37,11 +38,13 @@ void setup() {
 
   if (now_state == LOCKED) {
     Serial.println("Locked.");
-    postTweet(String("Locked! at" + String(millis())));
+    postTweet(String("Locked! bootCount " + String(bootCount)));
+    // Serial.println(String("Locked! bootCount " + String(bootCount)));
     esp_sleep_enable_ext0_wakeup(PIN, UNLOCKED);
   } else {
     Serial.println("Unlocked.");
-    postTweet(String("Unlocked. Check the key!! at" + String(millis())));
+    postTweet(String("Unlocked. Check the key!! bootCount " + String(bootCount)));
+    // Serial.println(String("Unlocked. Check the key!! bootCount " + String(bootCount)));
     esp_sleep_enable_ext0_wakeup(PIN, LOCKED);
   }
 
