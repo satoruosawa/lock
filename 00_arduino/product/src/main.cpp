@@ -2,6 +2,7 @@
 
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include "time.h"
 
 #include "./config.h"
 
@@ -10,9 +11,14 @@
 #define UNLOCKED 1
 
 void postTweet(String tweet);
+String getTimeString();
 
 RTC_DATA_ATTR int bootCount = 0;
 const gpio_num_t PIN = GPIO_NUM_14;
+
+const char* ntpServer = "ntp.nict.jp";
+const long gmtOffset_sec = 9 * 3600; // +9hours
+const int daylightOffset_sec = 0; // summer time offset
 
 void setup() {
   bootCount++;
@@ -33,18 +39,18 @@ void setup() {
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
 
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+
   pinMode(PIN, INPUT_PULLUP);
   int now_state = digitalRead(PIN);
 
   if (now_state == LOCKED) {
     Serial.println("Locked.");
-    postTweet(String("Locked! bootCount " + String(bootCount)));
-    // Serial.println(String("Locked! bootCount " + String(bootCount)));
+    postTweet(String("Locked! at" + getTimeString() + " bootCount " + String(bootCount)));
     esp_sleep_enable_ext0_wakeup(PIN, UNLOCKED);
   } else {
     Serial.println("Unlocked.");
-    postTweet(String("Unlocked. Check the key!! bootCount " + String(bootCount)));
-    // Serial.println(String("Unlocked. Check the key!! bootCount " + String(bootCount)));
+    postTweet(String("Unlocked. Check the key!! at" + getTimeString() + " bootCount " + String(bootCount)));
     esp_sleep_enable_ext0_wakeup(PIN, LOCKED);
   }
 
@@ -70,4 +76,17 @@ void postTweet(String tweet) {
     Serial.println(body);
   }
   delay(15000);
+}
+
+String getTimeString() {
+  struct tm timeinfo;
+  if (!getLocalTime(&timeinfo)) {
+    return "Failed to obtain time. #rand" + String(random(10000)) + "#";
+  }
+  return String(timeinfo.tm_year + 1900) + "/" +
+    String(timeinfo.tm_mon + 1) + "/" +
+    String(timeinfo.tm_mday) + " " +
+    String(timeinfo.tm_hour) + ":" +
+    String(timeinfo.tm_min) + ":" +
+    String(timeinfo.tm_sec);
 }
