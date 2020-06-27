@@ -1,5 +1,5 @@
-#include <Arduino.h>
 #include <HTTPClient.h>
+#include <M5Stack.h>
 #include <WiFi.h>
 
 #include "./config.h"
@@ -14,7 +14,7 @@ void postTweet(String tweet);
 String getTimeString();
 
 RTC_DATA_ATTR int bootCount = 0;
-const gpio_num_t PIN = GPIO_NUM_14;
+const gpio_num_t PIN = GPIO_NUM_16;
 
 const char* ntpServer = "ntp.nict.jp";
 const long gmtOffset_sec = 9 * 3600;  // +9hours
@@ -22,23 +22,18 @@ const int daylightOffset_sec = 0;     // summer time offset
 
 void setup() {
   bootCount++;
-  Serial.begin(115200);
-  Serial.println("Start");
-
-  while (!Serial)
-    ;
-
+  M5.begin();
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  Serial.printf("Connecting to the WiFi AP: %s ", WIFI_SSID);
+  M5.Lcd.printf("Connecting to the WiFi AP: %s ", WIFI_SSID);
 
   while (WiFi.status() != WL_CONNECTED) {
-    Serial.print(".");
+    M5.Lcd.print(".");
     delay(500);
   }
 
-  Serial.println(" connected.");
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
+  M5.Lcd.println(" connected.");
+  M5.Lcd.print("IP address: ");
+  M5.Lcd.println(WiFi.localIP());
 
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
 
@@ -46,18 +41,18 @@ void setup() {
   int now_state = digitalRead(PIN);
 
   if (now_state == LOCKED) {
-    Serial.println("Locked.");
+    M5.Lcd.println("Locked.");
     postTweet(String("Locked! at" + getTimeString() + " bootCount " +
                      String(bootCount)));
     esp_sleep_enable_ext0_wakeup(PIN, UNLOCKED);
   } else {
-    Serial.println("Unlocked.");
+    M5.Lcd.println("Unlocked.");
     postTweet(String("Unlocked. Check the key!! at" + getTimeString() +
                      " bootCount " + String(bootCount)));
     esp_sleep_enable_ext0_wakeup(PIN, LOCKED);
   }
 
-  Serial.println("Going to sleep.");
+  M5.Lcd.println("Going to sleep.");
   delay(100);
   esp_deep_sleep_start();
 }
@@ -71,12 +66,12 @@ void postTweet(String tweet) {
   String tsData =
       String("api_key=" + String(THING_TWEET_API_KEY) + "&status=" + tweet);
   int httpCode = http.POST(tsData);
-  Serial.printf("Response: %d", httpCode);
-  Serial.println();
+  M5.Lcd.printf("Response: %d", httpCode);
+  M5.Lcd.println();
   if (httpCode == HTTP_CODE_OK) {
     String body = http.getString();
-    Serial.print("Response Body: ");
-    Serial.println(body);
+    M5.Lcd.print("Response Body: ");
+    M5.Lcd.println(body);
   }
   delay(15000);
 }
