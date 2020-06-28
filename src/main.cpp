@@ -14,26 +14,35 @@ void postTweet(String tweet);
 String getTimeString();
 
 RTC_DATA_ATTR int bootCount = 0;
-const gpio_num_t PIN = GPIO_NUM_16;
+const gpio_num_t PIN = GPIO_NUM_2;
 
 const char* ntpServer = "ntp.nict.jp";
 const long gmtOffset_sec = 9 * 3600;  // +9hours
 const int daylightOffset_sec = 0;     // summer time offset
 
+void beep(int frequency, int duration) {
+  M5.Speaker.tone(frequency, duration);
+  for (int i = 0; i < duration + 10; i++) {
+    M5.update();
+    delay(1);
+  }
+}
+
 void setup() {
   bootCount++;
   M5.begin();
+  M5.Power.setPowerBoostKeepOn(true);
+  M5.Lcd.setBrightness(0);
+  M5.Lcd.sleep();
+  M5.Speaker.setVolume(7);
+  beep(3520, 50);
+
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  M5.Lcd.printf("Connecting to the WiFi AP: %s ", WIFI_SSID);
 
   while (WiFi.status() != WL_CONNECTED) {
-    M5.Lcd.print(".");
     delay(500);
   }
-
-  M5.Lcd.println(" connected.");
-  M5.Lcd.print("IP address: ");
-  M5.Lcd.println(WiFi.localIP());
+  beep(3951, 50);
 
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
 
@@ -41,18 +50,16 @@ void setup() {
   int now_state = digitalRead(PIN);
 
   if (now_state == LOCKED) {
-    M5.Lcd.println("Locked.");
     postTweet(String("Locked! at" + getTimeString() + " bootCount " +
                      String(bootCount)));
     esp_sleep_enable_ext0_wakeup(PIN, UNLOCKED);
   } else {
-    M5.Lcd.println("Unlocked.");
     postTweet(String("Unlocked. Check the key!! at" + getTimeString() +
                      " bootCount " + String(bootCount)));
     esp_sleep_enable_ext0_wakeup(PIN, LOCKED);
   }
-
-  M5.Lcd.println("Going to sleep.");
+  esp_sleep_disable_wakeup_source(ESP_SLEEP_WAKEUP_TIMER);
+  beep(4186, 50);
   delay(100);
   esp_deep_sleep_start();
 }
@@ -66,12 +73,8 @@ void postTweet(String tweet) {
   String tsData =
       String("api_key=" + String(THING_TWEET_API_KEY) + "&status=" + tweet);
   int httpCode = http.POST(tsData);
-  M5.Lcd.printf("Response: %d", httpCode);
-  M5.Lcd.println();
   if (httpCode == HTTP_CODE_OK) {
     String body = http.getString();
-    M5.Lcd.print("Response Body: ");
-    M5.Lcd.println(body);
   }
   delay(15000);
 }

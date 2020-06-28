@@ -8,3 +8,12 @@
 #define WIFI_PASSWORD "xxxxxx"
 #define THING_TWEET_API_KEY "xxxxxx"
 ```
+
+### Reference
+- [Sleep Modes](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/sleep_modes.html)
+
+### TODO
+- WiFiに接続できなかったときの処理
+  - 少しずつ間隔を開けながら再接続
+- バッテリーが少なくなってきたらツイート
+- ボタンインタラクション
